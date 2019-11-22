@@ -20,14 +20,25 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
+
+    // Required by Moxy
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
 }
 
 dependencies {
     kapt "com.google.dagger:dagger-compiler:$daggerVer"
     implementation "com.google.dagger:dagger:$daggerVer"
 
+    kapt "com.github.moxy-community:moxy-compiler:$moxyVer"
+    implementation "com.github.moxy-community:moxy:$moxyVer"
+    implementation "com.github.moxy-community:moxy-androidx:$moxyVer"
+
     implementation"org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
     implementation "androidx.fragment:fragment:$fragmentVer"
+    implementation "androidx.cardview:cardview:$cardviewVer"
     implementation "androidx.constraintlayout:constraintlayout:$constraintVer"
     implementation "androidx.recyclerview:recyclerview:$recyclerviewVer"
 

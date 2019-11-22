@@ -1,7 +1,8 @@
-package ru.pavelcoder.modulbankdemo
+package ru.pavelcoder.modulbankdemo.activity
 
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
+import ru.pavelcoder.modulbankdemo.R
 
 class MainActivity : AppCompatActivity() {
 

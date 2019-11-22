@@ -7,9 +7,11 @@ buildscript {
     ext.fragmentVer = "1.2.0-rc02@aar"
     ext.recyclerviewVer = "1.1.0@aar"
     ext.constraintVer = "2.0.0-beta3"
+    ext.cardviewVer = "1.0.0@aar"
     ext.gsonVer = "2.8.6"
     ext.daggerVer = "2.25.2"
     ext.retrofitVer = "2.6.2"
+    ext.moxyVer = "2.0.2"
     repositories {
         google()
         jcenter()

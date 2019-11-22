@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="10dp">
+
+    <ProgressBar
+        android:id="@+id/faProgress"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:indeterminate="true"
+        android:layout_gravity="center"
+        android:indeterminateTint="@color/colorAccent" />
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/faContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingTop="48dp"
+        android:paddingLeft="16dp"
+        android:paddingRight="16dp"
+        android:paddingBottom="32dp">
+
+        <TextView
+            android:id="@+id/faCurrencyName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:textSize="40sp"
+            android:textColor="@color/blackText"
+            tools:text="@string/gbp"/>
+
+        <EditText
+            android:id="@+id/faCurrencyValue"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintLeft_toLeftOf="@id/faCurrencyName"
+            app:layout_constraintTop_toTopOf="@id/faCurrencyName"
+            app:layout_constraintBottom_toBottomOf="@id/faCurrencyName"
+            android:hint="@string/zero_money"
+            android:textColorHint="@color/hintColor"
+            android:textSize="40sp"
+            android:textColor="@color/blackText"
+            android:gravity="end"
+            android:background="@null"
+            android:inputType="numberDecimal"/>
+
+        <TextView
+            android:id="@+id/faCurrencyAvailable"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/faCurrencyName"
+            android:layout_marginTop="32dp"
+            android:textSize="16sp"
+            android:textColor="@color/grayText"
+            tools:text="@string/currency_you_have"/>
+
+        <TextView
+            android:id="@+id/faCurrencyConversion"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@id/faCurrencyAvailable"
+            app:layout_constraintBottom_toBottomOf="@id/faCurrencyAvailable"
+            android:textSize="16sp"
+            android:textColor="@color/grayText"
+            tools:text="1$ = RUB 27.5" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+</androidx.cardview.widget.CardView>
