@@ -47,6 +47,10 @@ class LocalBank (
         return currencies[currency] ?: throw NoSuchCurrencyException(currency.toString())
     }
 
+    override fun getAvailableCurrencies(): List<Currency> {
+        return currencies.keys.toList()
+    }
+
     private fun validateTransaction(transaction: Transaction) {
         val actualTransaction = prepareTransaction(
             transaction.sourceCurrency,
@@ -57,6 +61,4 @@ class LocalBank (
             throw RatesWrongExceptionException("Wrong transaction $transaction, actual: $actualTransaction")
         }
     }
-
-
 }

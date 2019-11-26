@@ -1,6 +1,8 @@
 <resources>
     <string name="app_name">ModulBankTest</string>
     <string name="zero_money">0.00</string>
-    <string name="currency_you_have">You have: %s</string>
+    <string name="currency_you_have">You have: %.2f%s</string>
     <string name="gbp">GBP</string>
+    <string name="rate_format">%.2f%s = %.2f%s</string>
+    <string name="currency_amount_format">%s  %.2f</string>
 </resources>

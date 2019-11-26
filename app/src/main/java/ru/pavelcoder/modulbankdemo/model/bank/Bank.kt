@@ -8,4 +8,5 @@ interface Bank {
     fun prepareTransaction(sourceCurrency: Currency, targetCurrency: Currency, targetAmount: Long): Transaction
     fun executeTransaction(transaction: Transaction)
     fun getAvailableFunds(currency: Currency): Long
+    fun getAvailableCurrencies(): List<Currency>
 }

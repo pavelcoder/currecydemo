@@ -5,16 +5,18 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp">
+    android:layout_margin="10dp"
+    android:elevation="@dimen/currency_shadow"
+    app:cardElevation="@dimen/currency_shadow">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/fcContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="48dp"
-        android:paddingLeft="16dp"
-        android:paddingRight="16dp"
-        android:paddingBottom="32dp">
+        android:layout_marginTop="36dp"
+        android:layout_marginLeft="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginBottom="25dp">
 
         <TextView
             android:id="@+id/fcCurrencyName"
@@ -22,6 +24,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            android:fontFamily="sans-serif-light"
             android:textSize="40sp"
             android:textColor="@color/blackText"
             tools:text="@string/gbp"/>
@@ -34,6 +37,7 @@
             app:layout_constraintLeft_toLeftOf="@id/fcCurrencyName"
             app:layout_constraintTop_toTopOf="@id/fcCurrencyName"
             app:layout_constraintBottom_toBottomOf="@id/fcCurrencyName"
+            android:fontFamily="sans-serif-light"
             android:hint="@string/zero_money"
             android:textColorHint="@color/hintColor"
             android:textSize="40sp"
@@ -49,10 +53,12 @@
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toBottomOf="@id/fcCurrencyName"
+            app:layout_constraintBottom_toBottomOf="parent"
+            android:layout_marginBottom="5dp"
             android:layout_marginTop="32dp"
             android:textSize="16sp"
             android:textColor="@color/grayText"
-            tools:text="@string/currency_you_have"/>
+            android:text="@string/currency_you_have"/>
 
         <TextView
             android:id="@+id/faCurrencyConversion"

@@ -105,7 +105,6 @@ class CurrencyRatesFetcher(
     /**
      * @return null if data is not valid
      */
-    @Throws(RatesResponseNotConsistentException::class)
     private fun convertResponseToRates(response: CurrencyRatesResponse?): List<CurrencyRate> {
         val baseCurrencyCode = response?.base ?: throw RatesResponseNotConsistentException("No base currency code")
         val baseCurrency = Currency.currencyForCode(baseCurrencyCode) ?: throw RatesResponseNotConsistentException("Unknown base currency code")
