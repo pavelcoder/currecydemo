@@ -31,6 +31,5 @@ open class DaggerModule {
 
     @Provides
     @Singleton
-    fun providesCurrencyRatesFetcher(service: ExchangeService) =
-        CurrencyRatesFetcher(service)
+    fun providesCurrencyRatesFetcher(service: ExchangeService) = CurrencyRatesFetcher(service)
 }

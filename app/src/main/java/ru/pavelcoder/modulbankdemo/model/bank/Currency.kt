@@ -1,10 +1,11 @@
-package ru.pavelcoder.modulbankdemo.model.account
+package ru.pavelcoder.modulbankdemo.model.bank
 
 enum class Currency(
     val code: String
 ) {
     EUR("EUR"),
     USD("USD"),
+    RUB("RUB"),
     GBP("GBP");
 
     companion object {

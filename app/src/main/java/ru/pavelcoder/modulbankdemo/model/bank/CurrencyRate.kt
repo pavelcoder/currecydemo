@@ -1,4 +1,4 @@
-package ru.pavelcoder.modulbankdemo.model.account
+package ru.pavelcoder.modulbankdemo.model.bank
 
 data class CurrencyRate (
     val base: Currency,

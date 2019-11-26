@@ -2,8 +2,10 @@ package ru.pavelcoder.modulbankdemo.model.currencyrates
 
 import kotlinx.coroutines.*
 import ru.pavelcoder.modulbankdemo.BuildConfig
-import ru.pavelcoder.modulbankdemo.model.account.Currency
-import ru.pavelcoder.modulbankdemo.model.account.CurrencyRate
+import ru.pavelcoder.modulbankdemo.model.bank.Currency
+import ru.pavelcoder.modulbankdemo.model.bank.CurrencyRate
+import ru.pavelcoder.modulbankdemo.model.bank.exception.RateNotFoundException
+import ru.pavelcoder.modulbankdemo.model.bank.exception.RatesNotReadyException
 import ru.pavelcoder.modulbankdemo.model.retrofit.CurrencyRatesResponse
 import ru.pavelcoder.modulbankdemo.model.retrofit.ExchangeService
 import java.lang.Exception
@@ -16,7 +18,7 @@ import java.lang.RuntimeException
  */
 class CurrencyRatesFetcher(
     private val exchangeService: ExchangeService
-): CoroutineScope {
+): CurrencyRatesSource, CoroutineScope {
     companion object {
         private const val REFRESH_RATE_MILLIS = 30_000L
     }
@@ -29,8 +31,7 @@ class CurrencyRatesFetcher(
 
     private var state = State(updating = false, shouldUpdate = false, updateAllowed = false)
     private val listeners = arrayListOf<CurrencyRatesListener>()
-    var currencyRates: List<CurrencyRate>? = null
-        private set
+    private var currencyRates: List<CurrencyRate>? = null
 
     override val coroutineContext = Dispatchers.Main
 
@@ -112,5 +113,11 @@ class CurrencyRatesFetcher(
             val rate = response.rates?.get(currency.code) ?: throw RatesResponseNotConsistentException("Can't find currency rate for ${currency.code}")
             CurrencyRate(baseCurrency, currency, rate)
         }
+    }
+
+    override fun rateForCurrency(currency: Currency): CurrencyRate {
+        if( currencyRates == null ) throw RatesNotReadyException()
+        return currencyRates!!.find { it.target == currency }
+            ?: throw RateNotFoundException(currency.toString())
     }
 }
