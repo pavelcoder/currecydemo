@@ -5,5 +5,7 @@ import moxy.MvpPresenter
 
 @InjectViewState
 class AccountCurrencyPresenter : MvpPresenter<AccountCurrencyView>() {
+    init {
 
+    }
 }

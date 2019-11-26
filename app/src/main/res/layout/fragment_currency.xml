@@ -7,16 +7,8 @@
     android:layout_height="wrap_content"
     android:layout_margin="10dp">
 
-    <ProgressBar
-        android:id="@+id/faProgress"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:indeterminate="true"
-        android:layout_gravity="center"
-        android:indeterminateTint="@color/colorAccent" />
-
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/faContainer"
+        android:id="@+id/fcContainer"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:paddingTop="48dp"
@@ -25,7 +17,7 @@
         android:paddingBottom="32dp">
 
         <TextView
-            android:id="@+id/faCurrencyName"
+            android:id="@+id/fcCurrencyName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
@@ -35,27 +27,28 @@
             tools:text="@string/gbp"/>
 
         <EditText
-            android:id="@+id/faCurrencyValue"
+            android:id="@+id/fcCurrencyValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="@id/faCurrencyName"
-            app:layout_constraintTop_toTopOf="@id/faCurrencyName"
-            app:layout_constraintBottom_toBottomOf="@id/faCurrencyName"
+            app:layout_constraintLeft_toLeftOf="@id/fcCurrencyName"
+            app:layout_constraintTop_toTopOf="@id/fcCurrencyName"
+            app:layout_constraintBottom_toBottomOf="@id/fcCurrencyName"
             android:hint="@string/zero_money"
             android:textColorHint="@color/hintColor"
             android:textSize="40sp"
             android:textColor="@color/blackText"
             android:gravity="end"
+            android:ellipsize="end"
             android:background="@null"
             android:inputType="numberDecimal"/>
 
         <TextView
-            android:id="@+id/faCurrencyAvailable"
+            android:id="@+id/fcCurrencyAvailable"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/faCurrencyName"
+            app:layout_constraintTop_toBottomOf="@id/fcCurrencyName"
             android:layout_marginTop="32dp"
             android:textSize="16sp"
             android:textColor="@color/grayText"
@@ -66,8 +59,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="@id/faCurrencyAvailable"
-            app:layout_constraintBottom_toBottomOf="@id/faCurrencyAvailable"
+            app:layout_constraintTop_toTopOf="@id/fcCurrencyAvailable"
+            app:layout_constraintBottom_toBottomOf="@id/fcCurrencyAvailable"
             android:textSize="16sp"
             android:textColor="@color/grayText"
             tools:text="1$ = RUB 27.5" />
