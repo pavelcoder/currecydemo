@@ -1,5 +1,6 @@
 package ru.pavelcoder.modulbankdemo.dagger
 
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
@@ -10,7 +11,9 @@ import javax.inject.Named
 import javax.inject.Singleton
 
 @Module
-open class DaggerModule {
+open class DaggerModule(
+    private val applicationContext: Context
+) {
     companion object {
         const val CURRENCY_RATES_HOST = "CURRENCY_RATES_HOST"
     }
@@ -32,4 +35,7 @@ open class DaggerModule {
     @Provides
     @Singleton
     fun providesCurrencyRatesFetcher(service: ExchangeService) = CurrencyRatesFetcher(service)
+
+    @Provides
+    fun providesContext() = applicationContext
 }

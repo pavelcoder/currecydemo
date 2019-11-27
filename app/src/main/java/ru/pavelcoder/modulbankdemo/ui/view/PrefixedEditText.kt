@@ -5,9 +5,13 @@ import android.text.Editable
 import android.text.Selection
 import android.text.TextWatcher
 import android.util.AttributeSet
-import android.widget.EditText
+import androidx.appcompat.widget.AppCompatEditText
 
-class PrefixedEditText(context: Context?, attrs: AttributeSet?) : EditText (context, attrs) {
+/**
+ * Cursor not positioning at right corner, when hint is specified.
+ * Class implements own hint.
+ */
+class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditText (context, attrs) {
     var prefix: String = ""
         set(value) {
             field = value
@@ -31,6 +35,7 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : EditText (cont
     }
 
     fun setTextWithoutCallbacks(text: String) {
+        if( this.text.toString() == text ) return
         removeTextChangedListener(textWatcher)
         setText(text)
         addTextChangedListener(textWatcher)
@@ -44,17 +49,16 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : EditText (cont
             }
             textString.startsWith(prefix) == false -> {
                 setTextWithoutCallbacks(prefix + textString)
-                Selection.setSelection(text, text.length)
+                Selection.setSelection(text, text!!.length)
             }
         }
     }
 
     private fun textWithoutPrefix(): String {
-        return if( text.startsWith(prefix) ) {
-            text.substring(prefix.length)
+        return if( text!!.startsWith(prefix) ) {
+            text!!.substring(prefix.length)
         } else {
             text.toString()
         }
-
     }
 }

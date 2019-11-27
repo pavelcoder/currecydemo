@@ -5,9 +5,10 @@ enum class Currency(
     val symbol: String
 ) {
     EUR("EUR", "€"),
-    USD("USD", "\$"),
-    RUB("RUB", "\u20BD"),
-    GBP("GBP", "£");
+    //USD("USD", "\$"),
+    RUB("RUB", "\u20BD")
+    //GBP("GBP", "£")
+    ;
 
     companion object {
         fun currencyForCode(code: String) = values().find { it.code == code }

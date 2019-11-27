@@ -7,6 +7,6 @@ import ru.pavelcoder.modulbankdemo.dagger.DaggerModule
 class MBApp : Application() {
     override fun onCreate() {
         super.onCreate()
-        DaggerHolder.init(DaggerModule())
+        DaggerHolder.init(DaggerModule(this))
     }
 }

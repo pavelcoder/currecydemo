@@ -62,26 +62,33 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
 
     private fun showExchangeView() {
         viewState.setState(MainViewState.CURRENCY_EXCHANGE)
-        val currencyCount = availableCurrencies.size
+        showSourceCurrencies()
+        showDestinationCurrencies()
+        prepareAndShowZeroTransaction()
+    }
 
+    private fun showSourceCurrencies() {
+        val currencyCount = availableCurrencies.size
         val sourceIdentifiers = (0 until currencyCount).map {
             CurrencyFragmentIdentifier(CurrencyFragmentType.SOURCE, it)
         }
         viewState.showSourceCurrencies(sourceIdentifiers)
         viewState.setSelectedSourceCurrency(DEFAULT_SELECTED_CURRENCY_INDEX)
+        sourceIdentifiers.forEach { identifier -> firstSetupCurrencyPresenter(identifier, sourcePrefix) }
+    }
+
+    private fun showDestinationCurrencies() {
+        val currencyCount = availableCurrencies.size
         val destinationIdentifiers = (0 until currencyCount).map {
             CurrencyFragmentIdentifier(CurrencyFragmentType.DESTINATION, it)
         }
         viewState.showDestinationCurrencies(destinationIdentifiers)
 
         viewState.setSelectedDestinationCurrency(DEFAULT_SELECTED_CURRENCY_INDEX)
-
-        sourceIdentifiers.forEach { identifier -> firstSetupCurrencyPresenter(identifier, sourcePrefix) }
         destinationIdentifiers.forEach { identifier -> firstSetupCurrencyPresenter(identifier, destinationPrefix) }
-        prepareZeroTransaction()
     }
 
-    private fun prepareZeroTransaction() {
+    private fun prepareAndShowZeroTransaction() {
         val firstCurrency = availableCurrencies.first()
         val transactionRequest = TransactionRequest(firstCurrency, firstCurrency, 0, TransactionRequest.TransactionCalcFrom.Source)
         prepareTransactionRequestAndShow(transactionRequest)
@@ -91,36 +98,21 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         val presenter = providePresenter(identifier)
         val currency = availableCurrencies[identifier.position]
         presenter.setCurrency(currency.code)
-        presenter.setAmount(0f)
         presenter.setAmountPrefix(amountPrefix)
-        presenter.setRate(1f, currency.symbol, 1f, currency.symbol)
-
         val available = bank!!.getAvailableFunds(currency)
         presenter.setAvailableAmount(available / 100f, currency.symbol)
     }
 
     fun onSourceSelectionChanged(position: Int) {
+        selectedSourceCurrency = availableCurrencies[position]
         viewState.setSelectedSourceCurrency(position)
-        val selectedSourceCurrency = availableCurrencies[position]
-        val transactionRequest = TransactionRequest(
-            selectedSourceCurrency,
-            selectedDestinationCurrency,
-            destinationAmount,
-            TransactionRequest.TransactionCalcFrom.Destination
-        )
-        prepareTransactionRequestAndShow(transactionRequest)
+        updateSourceAmount(true)
     }
 
     fun onDestinationSelectionChanged(position: Int) {
+        selectedDestinationCurrency = availableCurrencies[position]
         viewState.setSelectedDestinationCurrency(position)
-        val selectedDestinationCurrency = availableCurrencies[position]
-        val transactionRequest = TransactionRequest(
-            selectedSourceCurrency,
-            selectedDestinationCurrency,
-            sourceAmount,
-            TransactionRequest.TransactionCalcFrom.Source
-        )
-        prepareTransactionRequestAndShow(transactionRequest)
+        updateDestinationAmount(true)
     }
 
     fun onExchangeClick() {
@@ -130,30 +122,77 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
     fun onAmountChanged(fragmentIdentifier: CurrencyFragmentIdentifier, amount: Float) {
         val amountInCents = (amount * 100).toLong()
         when (fragmentIdentifier.type) {
-            CurrencyFragmentType.SOURCE -> sourceAmount = amountInCents
-            CurrencyFragmentType.DESTINATION -> destinationAmount = amountInCents
+            CurrencyFragmentType.SOURCE -> {
+                sourceAmount = amountInCents
+                updateDestinationAmount(false)
+            }
+            CurrencyFragmentType.DESTINATION -> {
+                destinationAmount = amountInCents
+                updateSourceAmount(false)
+            }
         }
-        val transactionRequest = createTransactionRequest(fragmentIdentifier, amountInCents)
-        prepareTransactionRequestAndShow(transactionRequest)
     }
 
-    private fun createTransactionRequest(fragmentIdentifier: CurrencyFragmentIdentifier, amount: Long): TransactionRequest {
-        return when( fragmentIdentifier.type ) {
-            CurrencyFragmentType.DESTINATION -> {
-                TransactionRequest(
-                    selectedSourceCurrency,
-                    selectedDestinationCurrency,
-                    amount,
-                    TransactionRequest.TransactionCalcFrom.Destination)
+    private fun updateSourceAmount(withRates: Boolean) {
+        val transactionRequest = TransactionRequest(
+            selectedSourceCurrency,
+            selectedDestinationCurrency,
+            destinationAmount,
+            TransactionRequest.TransactionCalcFrom.Destination
+        )
+        val srcPresenter = getActiveSourceCurreucyPresenter()
+        try {
+            val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
+            sourceAmount = transaction.sourceAmount
+            srcPresenter.setAmount(transaction.sourceAmount / 100f)
+            if( withRates ) {
+                srcPresenter.setRate(
+                    1f,
+                    transaction.sourceCurrency.symbol,
+                    transaction.sourceToDestinationRate,
+                    transaction.destinationCurrency.symbol
+                )
             }
-            CurrencyFragmentType.SOURCE -> {
-                TransactionRequest(
-                    selectedSourceCurrency,
-                    selectedDestinationCurrency,
-                    amount,
-                    TransactionRequest.TransactionCalcFrom.Source)
-            }
+        } catch (e: Exception) {
+            srcPresenter.setAmount(0f)
         }
+    }
+
+    private fun updateDestinationAmount(withRates: Boolean) {
+        val transactionRequest = TransactionRequest(
+            selectedSourceCurrency,
+            selectedDestinationCurrency,
+            sourceAmount,
+            TransactionRequest.TransactionCalcFrom.Source
+        )
+        val dstPresenter = getActiveDestinationCurreucyPresenter()
+        try {
+            val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
+            destinationAmount = transaction.destinationAmount
+            dstPresenter.setAmount(transaction.destinationAmount / 100f)
+            if( withRates ) {
+                dstPresenter.setRate(
+                    1f,
+                    transaction.destinationCurrency.symbol,
+                    1 / transaction.sourceToDestinationRate,
+                    transaction.sourceCurrency.symbol
+                )
+            }
+        } catch (e: Exception) {
+            dstPresenter.setAmount(0f)
+        }
+    }
+
+    private fun getActiveSourceCurreucyPresenter(): CurrencyFragmentPresenter {
+        val sourceCurrencyIndex = availableCurrencies.indexOf(selectedSourceCurrency)
+        val sourcePresenterIdentifier = CurrencyFragmentIdentifier(CurrencyFragmentType.SOURCE, sourceCurrencyIndex)
+        return providePresenter(sourcePresenterIdentifier)
+    }
+
+    private fun getActiveDestinationCurreucyPresenter(): CurrencyFragmentPresenter {
+        val sourceCurrencyIndex = availableCurrencies.indexOf(selectedDestinationCurrency)
+        val sourcePresenterIdentifier = CurrencyFragmentIdentifier(CurrencyFragmentType.DESTINATION, sourceCurrencyIndex)
+        return providePresenter(sourcePresenterIdentifier)
     }
 
     private fun prepareTransactionRequestAndShow(transactionRequest: TransactionRequest) {
@@ -168,9 +207,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
     }
 
     private fun showPreparedTransaction(transaction: Transaction) {
-        val sourceCurrencyIndex = availableCurrencies.indexOf(transaction.sourceCurrency)
-        val sourcePresenterIdentifier = CurrencyFragmentIdentifier(CurrencyFragmentType.SOURCE, sourceCurrencyIndex)
-        val srcPresenter = providePresenter(sourcePresenterIdentifier)
+        val srcPresenter = getActiveSourceCurreucyPresenter()
         srcPresenter.setAmount(transaction.sourceAmount / 100f)
 
         srcPresenter.setRate(

@@ -41,18 +41,15 @@ class CurrencyFragment : MvpAppCompatFragment(R.layout.fragment_currency), Curre
         fcCurrencyName.text = name
     }
 
-    override fun setAmount(amount: Float) {
-        val formatted = String.format(getString(R.string.currency_amount_format), amount / 100f)
-        fcCurrencyValue.setTextWithoutCallbacks(formatted)
+    override fun setAmount(amount: String) {
+        fcCurrencyValue.setTextWithoutCallbacks(amount)
     }
 
-    override fun setRate(leftAmount: Float, leftSymbol: String, rightAmount: Float, rightSymbol: String) {
-        val text = String.format(getString(R.string.rate_format), leftAmount, leftSymbol, rightAmount, rightSymbol)
-        faCurrencyConversion.text = text
+    override fun setRate(rate: String) {
+        faCurrencyConversion.text = rate
     }
 
-    override fun setAvailableAmount(available: Float, symbol: String) {
-        val text = getString(R.string.currency_you_have, available, symbol)
+    override fun setAvailableAmount(text: String) {
         fcCurrencyAvailable.text = text
     }
 
