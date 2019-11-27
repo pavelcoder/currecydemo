@@ -28,19 +28,22 @@ class CurrencyFragment : MvpAppCompatFragment(R.layout.fragment_currency), Curre
         return presenterProvider.providePresenter(getParams())
     }
 
-    fun getParams() = arguments?.getSerializable(PAYLOAD) as CurrencyFragmentIdentifier
+    private fun getParams() = arguments?.getSerializable(PAYLOAD) as CurrencyFragmentIdentifier
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        fcCurrencyValue.onTextChanged = {amount ->
+            fragmentPresenter.onAmountChanged(amount)
+        }
     }
 
     override fun setCurrency(name: String) {
         fcCurrencyName.text = name
     }
 
-    override fun setAmount(prefix: String, amount: Float) {
-        val formatted = String.format(getString(R.string.currency_amount_format), prefix, amount / 100f)
-        fcCurrencyValue.setText(formatted)
+    override fun setAmount(amount: Float) {
+        val formatted = String.format(getString(R.string.currency_amount_format), amount / 100f)
+        fcCurrencyValue.setTextWithoutCallbacks(formatted)
     }
 
     override fun setRate(leftAmount: Float, leftSymbol: String, rightAmount: Float, rightSymbol: String) {
@@ -51,5 +54,9 @@ class CurrencyFragment : MvpAppCompatFragment(R.layout.fragment_currency), Curre
     override fun setAvailableAmount(available: Float, symbol: String) {
         val text = getString(R.string.currency_you_have, available, symbol)
         fcCurrencyAvailable.text = text
+    }
+
+    override fun setAmountPrefix(prefix: String) {
+        fcCurrencyValue.prefix = prefix
     }
 }

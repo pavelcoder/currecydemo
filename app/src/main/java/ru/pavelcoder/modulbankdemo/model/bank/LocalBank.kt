@@ -16,31 +16,33 @@ class LocalBank (
         currencies.toMap(this.currencies)
     }
 
-    override fun prepareTransaction(sourceCurrency: Currency, sourceAmount: Long, targetCurrency: Currency): Transaction {
-        val sourceRate = ratesSource.rateForCurrency(sourceCurrency)
-        val targetRate = ratesSource.rateForCurrency(targetCurrency)
+    override fun prepareTransactionWithActualRates(request: TransactionRequest): Transaction {
+        val sourceRate = ratesSource.rateForCurrency(request.sourceCurrency)
+        val targetRate = ratesSource.rateForCurrency(request.destinationCurrency)
         val conversionRate = targetRate.rate / sourceRate.rate
-        val targetAmount = (sourceAmount * conversionRate).toLong()
-        return Transaction(sourceCurrency, targetCurrency, sourceAmount, targetAmount)
-    }
-
-    override fun prepareTransaction(sourceCurrency: Currency, targetCurrency: Currency, targetAmount: Long): Transaction {
-        val sourceRate = ratesSource.rateForCurrency(sourceCurrency)
-        val targetRate = ratesSource.rateForCurrency(targetCurrency)
-        val conversionRate = targetRate.rate / sourceRate.rate
-        val sourceAmount = (targetAmount / conversionRate).toLong()
-        return Transaction(sourceCurrency, targetCurrency, sourceAmount, targetAmount)
+        return when( request.calcFrom ) {
+            TransactionRequest.TransactionCalcFrom.Source -> {
+                val sourceAmount = request.amount
+                val targetAmount = (sourceAmount * conversionRate).toLong()
+                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount, conversionRate)
+            }
+            TransactionRequest.TransactionCalcFrom.Destination -> {
+                val targetAmount = request.amount
+                val sourceAmount = (targetAmount / conversionRate).toLong()
+                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount, conversionRate)
+            }
+        }
     }
 
     override fun executeTransaction(transaction: Transaction) {
         validateTransaction(transaction)
         val sourceAmount = getAvailableFunds(transaction.sourceCurrency)
-        val targetAmount = getAvailableFunds(transaction.targetCurrency)
+        val targetAmount = getAvailableFunds(transaction.destinationCurrency)
         if( sourceAmount < transaction.sourceAmount ) {
             throw NotEnoughFundsException("Available $sourceAmount ${transaction.sourceCurrency}, required ${transaction.sourceAmount}")
         }
         currencies[transaction.sourceCurrency] = sourceAmount - transaction.sourceAmount
-        currencies[transaction.targetCurrency] = targetAmount + transaction.targetAmount
+        currencies[transaction.destinationCurrency] = targetAmount + transaction.destinationAmount
     }
 
     override fun getAvailableFunds(currency: Currency): Long {
@@ -52,10 +54,13 @@ class LocalBank (
     }
 
     private fun validateTransaction(transaction: Transaction) {
-        val actualTransaction = prepareTransaction(
-            transaction.sourceCurrency,
-            transaction.sourceAmount,
-            transaction.targetCurrency
+        val actualTransaction = prepareTransactionWithActualRates(
+            TransactionRequest(
+                transaction.sourceCurrency,
+                transaction.destinationCurrency,
+                transaction.sourceAmount,
+                TransactionRequest.TransactionCalcFrom.Source
+            )
         )
         if( actualTransaction != transaction ) {
             throw RatesWrongExceptionException("Wrong transaction $transaction, actual: $actualTransaction")

@@ -29,14 +29,15 @@
             android:textColor="@color/blackText"
             tools:text="@string/gbp"/>
 
-        <EditText
+        <ru.pavelcoder.modulbankdemo.ui.view.PrefixedEditText
             android:id="@+id/fcCurrencyValue"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintLeft_toLeftOf="@id/fcCurrencyName"
+            app:layout_constraintLeft_toRightOf="@id/fcCurrencyName"
             app:layout_constraintTop_toTopOf="@id/fcCurrencyName"
             app:layout_constraintBottom_toBottomOf="@id/fcCurrencyName"
+            android:layout_marginStart="24dp"
             android:fontFamily="sans-serif-light"
             android:hint="@string/zero_money"
             android:textColorHint="@color/hintColor"

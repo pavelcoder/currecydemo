@@ -4,5 +4,8 @@
     <string name="currency_you_have">You have: %.2f%s</string>
     <string name="gbp">GBP</string>
     <string name="rate_format">%.2f%s = %.2f%s</string>
-    <string name="currency_amount_format">%s  %.2f</string>
+    <string name="currency_amount_format">%.2f</string>
+    <string name="exchange">Exchange</string>
+    <string name="can_not_get_currency_rates">Can not get currency rates</string>
+    <string name="try_again">Try again</string>
 </resources>

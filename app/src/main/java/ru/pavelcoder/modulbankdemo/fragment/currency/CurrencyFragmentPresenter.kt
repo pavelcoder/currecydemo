@@ -10,16 +10,12 @@ class CurrencyFragmentPresenter(
     private val parent: MainPresenter
 ) : MvpPresenter<CurrencyView>() {
 
-    private var prefix = ""
-    private var amount: Float? = null
-
     fun setCurrency(currency: String) {
         viewState.setCurrency(currency)
     }
 
     fun setAmount(amount: Float) {
-        this.amount = amount
-        updateAmount()
+        viewState.setAmount(amount)
     }
 
     fun setRate(leftAmount: Float, leftSymbol: String, rightAmount: Float, rightSymbol: String) {
@@ -27,19 +23,17 @@ class CurrencyFragmentPresenter(
     }
 
     fun setAmountPrefix(prefix: String) {
-        this.prefix = prefix
-        updateAmount()
+        viewState.setAmountPrefix(prefix)
     }
 
     fun setAvailableAmount(available: Float, symbol: String) {
         viewState.setAvailableAmount(available, symbol)
     }
 
-    private fun updateAmount() {
-        viewState.setAmount(prefix, amount ?: 0f)
-    }
-
     fun onAmountChanged(newAmount: String) {
-
+        val amount = newAmount.replace(',', '.').toFloatOrNull()
+        if( amount != null ) {
+            parent.onAmountChanged(identifier, amount)
+        }
     }
 }

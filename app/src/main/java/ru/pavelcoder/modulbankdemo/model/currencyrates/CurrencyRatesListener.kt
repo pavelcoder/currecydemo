@@ -4,5 +4,5 @@ interface CurrencyRatesListener {
     /**
      * Called when currencies fetched successfully
      */
-    fun onNewCurrencyRates()
+    fun onCurrencyRatesUpdateFinished(success: Boolean)
 }

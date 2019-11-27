@@ -7,8 +7,10 @@ import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentIdentifier
 
 @StateStrategyType(AddToEndSingleStrategy::class)
 interface MainActivityView : MvpView {
-    fun setLoading(loading: Boolean)
+    fun setState(state: MainViewState)
     fun showDestinationCurrencies(destinationIdentifiers: List<CurrencyFragmentIdentifier>)
     fun showSourceCurrencies(sourceIdentifiers: List<CurrencyFragmentIdentifier>)
-
+    fun setToolbarTitle(title: String)
+    fun setSelectedSourceCurrency(position: Int)
+    fun setSelectedDestinationCurrency(position: Int)
 }

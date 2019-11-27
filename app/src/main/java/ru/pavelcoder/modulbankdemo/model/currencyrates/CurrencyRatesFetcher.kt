@@ -54,6 +54,10 @@ class CurrencyRatesFetcher(
         }
     }
 
+    fun reloadRatesNow() {
+        switchState(state.copy(shouldUpdate = true))
+    }
+
     private fun switchState(newState: State) {
         if( newState == state ) return
         val oldState = state
@@ -65,7 +69,6 @@ class CurrencyRatesFetcher(
 
         if( oldState.updating == true && state.updating == false ) {
             setupTimerForNextUpdate()
-            notifyRatesUpdated()
         }
     }
 
@@ -74,10 +77,12 @@ class CurrencyRatesFetcher(
             val response = tryDownloadRates()
             try {
                 currencyRates = convertResponseToRates(response)
+                notifyRatesUpdated(true)
             } catch (e: RatesResponseNotConsistentException) {
                 if(BuildConfig.DEBUG) {
                     e.printStackTrace()
                 }
+                notifyRatesUpdated(false)
             }
             switchState(state.copy(updating = false, shouldUpdate = false))
         }
@@ -91,8 +96,8 @@ class CurrencyRatesFetcher(
         }
     }
 
-    private fun notifyRatesUpdated() {
-        listeners.forEach { it.onNewCurrencyRates() }
+    private fun notifyRatesUpdated(success: Boolean) {
+        listeners.forEach { it.onCurrencyRatesUpdateFinished(success) }
     }
 
     private fun setupTimerForNextUpdate() {
@@ -108,10 +113,13 @@ class CurrencyRatesFetcher(
     private fun convertResponseToRates(response: CurrencyRatesResponse?): List<CurrencyRate> {
         val baseCurrencyCode = response?.base ?: throw RatesResponseNotConsistentException("No base currency code")
         val baseCurrency = Currency.currencyForCode(baseCurrencyCode) ?: throw RatesResponseNotConsistentException("Unknown base currency code")
-        return Currency.values().filter { it != baseCurrency }.map { currency ->
-            val rate = response.rates?.get(currency.code) ?: throw RatesResponseNotConsistentException("Can't find currency rate for ${currency.code}")
+        val currencies = Currency.values().filter { it != baseCurrency }.map { currency ->
+            val rate = response.rates?.get(currency.code)
+                ?: throw RatesResponseNotConsistentException("Can't find currency rate for ${currency.code}")
             CurrencyRate(baseCurrency, currency, rate)
-        }
+        }.toMutableList()
+        currencies.add(0, CurrencyRate(baseCurrency, baseCurrency, 1f))
+        return currencies
     }
 
     override fun rateForCurrency(currency: Currency): CurrencyRate {
