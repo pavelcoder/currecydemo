@@ -17,19 +17,17 @@ class LocalBank (
     }
 
     override fun prepareTransactionWithActualRates(request: TransactionRequest): Transaction {
-        val sourceRate = ratesSource.rateForCurrency(request.sourceCurrency)
-        val targetRate = ratesSource.rateForCurrency(request.destinationCurrency)
-        val conversionRate = targetRate.rate / sourceRate.rate
+        val conversionRate = getConversionRate(request.sourceCurrency, request.destinationCurrency)
         return when( request.calcFrom ) {
             TransactionRequest.TransactionCalcFrom.Source -> {
                 val sourceAmount = request.amount
                 val targetAmount = (sourceAmount * conversionRate).toLong()
-                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount, conversionRate)
+                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount)
             }
             TransactionRequest.TransactionCalcFrom.Destination -> {
                 val targetAmount = request.amount
                 val sourceAmount = (targetAmount / conversionRate).toLong()
-                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount, conversionRate)
+                Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount)
             }
         }
     }
@@ -53,6 +51,12 @@ class LocalBank (
         return currencies.keys.toList()
     }
 
+    override fun getConversionRate(from: Currency, to: Currency): Float {
+        val sourceRate = ratesSource.rateForCurrency(from)
+        val targetRate = ratesSource.rateForCurrency(to)
+        return targetRate.rate / sourceRate.rate
+    }
+
     private fun validateTransaction(transaction: Transaction) {
         val actualTransaction = prepareTransactionWithActualRates(
             TransactionRequest(
@@ -63,7 +67,7 @@ class LocalBank (
             )
         )
         if( actualTransaction != transaction ) {
-            throw RatesWrongExceptionException("Wrong transaction $transaction, actual: $actualTransaction")
+            throw RatesWrongException("Wrong transaction $transaction, actual: $actualTransaction")
         }
     }
 }

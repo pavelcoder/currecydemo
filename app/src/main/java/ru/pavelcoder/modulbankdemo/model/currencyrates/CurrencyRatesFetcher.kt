@@ -2,6 +2,7 @@ package ru.pavelcoder.modulbankdemo.model.currencyrates
 
 import kotlinx.coroutines.*
 import ru.pavelcoder.modulbankdemo.BuildConfig
+import ru.pavelcoder.modulbankdemo.logger.Logger
 import ru.pavelcoder.modulbankdemo.model.bank.Currency
 import ru.pavelcoder.modulbankdemo.model.bank.CurrencyRate
 import ru.pavelcoder.modulbankdemo.model.bank.exception.RateNotFoundException
@@ -17,7 +18,8 @@ import java.lang.RuntimeException
  * Don't update when no listeners.
  */
 class CurrencyRatesFetcher(
-    private val exchangeService: ExchangeService
+    private val exchangeService: ExchangeService,
+    private val logger: Logger
 ): CurrencyRatesSource, CoroutineScope {
     companion object {
         private const val REFRESH_RATE_MILLIS = 30_000L
@@ -79,9 +81,7 @@ class CurrencyRatesFetcher(
                 currencyRates = convertResponseToRates(response)
                 notifyRatesUpdated(true)
             } catch (e: RatesResponseNotConsistentException) {
-                if(BuildConfig.DEBUG) {
-                    e.printStackTrace()
-                }
+                logger.log(e)
                 notifyRatesUpdated(false)
             }
             switchState(state.copy(updating = false, shouldUpdate = false))

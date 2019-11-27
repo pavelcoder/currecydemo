@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import androidx.appcompat.app.AlertDialog
 import androidx.viewpager.widget.ViewPager
 import kotlinx.android.synthetic.main.activity_main.*
 import moxy.MvpAppCompatActivity
@@ -88,5 +89,12 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
 
     override fun setSelectedDestinationCurrency(position: Int) {
         amDestinationPager.setCurrentItem(position, false)
+    }
+
+    override fun showErrorAlert(text: String) {
+        AlertDialog.Builder(this)
+            .setMessage(text)
+            .setPositiveButton(R.string.Close) { _, _ ->}
+            .show()
     }
 }

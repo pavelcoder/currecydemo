@@ -4,6 +4,5 @@ data class Transaction(
     val sourceCurrency: Currency,
     val destinationCurrency: Currency,
     val sourceAmount: Long,
-    val destinationAmount: Long,
-    val sourceToDestinationRate: Float
+    val destinationAmount: Long
 )

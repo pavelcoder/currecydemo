@@ -8,4 +8,7 @@
     <string name="exchange">Exchange</string>
     <string name="can_not_get_currency_rates">Can not get currency rates</string>
     <string name="try_again">Try again</string>
+    <string name="Close">Close</string>
+    <string name="not_enough_money">Not enough money:\nRequired: %.2f %s\nAvailable: %.2f %s</string>
+    <string name="currency_rates_wrong">Currency rates is not correct</string>
 </resources>

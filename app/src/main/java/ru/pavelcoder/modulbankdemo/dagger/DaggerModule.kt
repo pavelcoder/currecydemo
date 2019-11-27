@@ -5,6 +5,9 @@ import dagger.Module
 import dagger.Provides
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import ru.pavelcoder.modulbankdemo.BuildConfig
+import ru.pavelcoder.modulbankdemo.logger.Logger
+import ru.pavelcoder.modulbankdemo.logger.LoggerImpl
 import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesFetcher
 import ru.pavelcoder.modulbankdemo.model.retrofit.ExchangeService
 import javax.inject.Named
@@ -34,8 +37,13 @@ open class DaggerModule(
 
     @Provides
     @Singleton
-    fun providesCurrencyRatesFetcher(service: ExchangeService) = CurrencyRatesFetcher(service)
+    fun providesCurrencyRatesFetcher(service: ExchangeService, logger: Logger) = CurrencyRatesFetcher(service, logger)
 
     @Provides
     fun providesContext() = applicationContext
+
+    @Provides
+    fun providesLogger(): Logger {
+        return LoggerImpl( ! BuildConfig.DEBUG )
+    }
 }
