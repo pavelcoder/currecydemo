@@ -11,4 +11,6 @@
     <string name="Close">Close</string>
     <string name="not_enough_money">Not enough money:\nRequired: %.2f %s\nAvailable: %.2f %s</string>
     <string name="currency_rates_wrong">Currency rates is not correct</string>
+    <string name="zero_transaction_error">Can not execute transaction with zero source or destination</string>
+    <string name="same_currency_transaction_error">Can not execute transaction between same currency</string>
 </resources>

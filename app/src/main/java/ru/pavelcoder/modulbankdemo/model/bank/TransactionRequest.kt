@@ -3,7 +3,7 @@ package ru.pavelcoder.modulbankdemo.model.bank
 data class TransactionRequest(
     val sourceCurrency: Currency,
     val destinationCurrency: Currency,
-    val amount: Long,
+    val amount: Double,
     val calcFrom: TransactionCalcFrom
 ) {
 

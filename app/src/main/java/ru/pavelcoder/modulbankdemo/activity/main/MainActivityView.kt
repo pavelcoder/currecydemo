@@ -14,6 +14,7 @@ interface MainActivityView : MvpView {
     fun setToolbarTitle(title: String)
     fun setSelectedSourceCurrency(position: Int)
     fun setSelectedDestinationCurrency(position: Int)
+    fun setExchangeButtonVisible(visible: Boolean)
     @StateStrategyType(OneExecutionStateStrategy::class)
     fun showErrorAlert(text: String)
 }

@@ -1,6 +1,7 @@
 package ru.pavelcoder.modulbankdemo.ui.view
 
 import android.content.Context
+import android.os.Parcelable
 import android.text.Editable
 import android.text.Selection
 import android.text.TextWatcher
@@ -19,6 +20,11 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditT
         }
 
     var onTextChanged: ((String) -> Unit)? = null
+
+    init {
+        //prevent from restore state and call text changed listener
+        isSaveEnabled = false
+    }
 
     private val textWatcher = object : TextWatcher {
         override fun onTextChanged(s: CharSequence,start: Int,before: Int,count: Int) {}

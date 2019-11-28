@@ -16,6 +16,8 @@ import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentPresenterPr
 
 class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentPresenterProvider {
 
+    private var hasMenu = false
+
     @InjectPresenter
     internal lateinit var presenter: MainPresenter
 
@@ -44,12 +46,15 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
         amReload.setOnClickListener {
             presenter.onReloadClick()
         }
+
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val inflater = menuInflater
-        inflater.inflate(R.menu.exchange_menu, menu)
-        return true
+        return if( hasMenu ) {
+            val inflater = menuInflater
+            inflater.inflate(R.menu.exchange_menu, menu)
+            true
+        } else super.onCreateOptionsMenu(menu)
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
@@ -96,5 +101,10 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
             .setMessage(text)
             .setPositiveButton(R.string.Close) { _, _ ->}
             .show()
+    }
+
+    override fun setExchangeButtonVisible(visible: Boolean) {
+        hasMenu = visible
+        invalidateOptionsMenu()
     }
 }
