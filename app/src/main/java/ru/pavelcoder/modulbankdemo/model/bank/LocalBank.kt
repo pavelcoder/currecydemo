@@ -46,7 +46,7 @@ class LocalBank (
     }
 
     override fun getAvailableFunds(currency: Currency): Double {
-        return funds[currency]?.toDouble() ?: throw NoSuchCurrencyException(currency.toString())
+        return funds[currency] ?: throw NoSuchCurrencyException(currency.toString())
     }
 
     override fun getAvailableCurrencies(): List<Currency> {

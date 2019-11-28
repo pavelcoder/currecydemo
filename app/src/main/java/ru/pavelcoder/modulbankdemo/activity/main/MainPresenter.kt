@@ -7,7 +7,6 @@ import ru.pavelcoder.modulbankdemo.R
 import ru.pavelcoder.modulbankdemo.dagger.DaggerHolder
 import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentIdentifier
 import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentPresenter
-import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentPresenterProvider
 import ru.pavelcoder.modulbankdemo.fragment.currency.CurrencyFragmentType
 import ru.pavelcoder.modulbankdemo.logger.Logger
 import ru.pavelcoder.modulbankdemo.model.bank.*
@@ -20,8 +19,7 @@ import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesListener
 import javax.inject.Inject
 
 @InjectViewState
-class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
-    CurrencyFragmentPresenterProvider {
+class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
 
     companion object {
         private const val SOURCE_PREFIX = "-"
@@ -43,6 +41,8 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
     private lateinit var selectedDestinationCurrency: Currency
     private var sourceAmount = 0.0
     private var destinationAmount = 0.0
+
+    val childPresenterHolder = CurrencyFragmentPresentersHolder(this)
 
     init {
         DaggerHolder.getDagger().inject(this)
@@ -122,7 +122,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
     }
 
     private fun firstSetupCurrencyPresenter(identifier: CurrencyFragmentIdentifier, amountPrefix: String) {
-        val presenter = providePresenter(identifier)
+        val presenter = childPresenterHolder.providePresenter(identifier)
         val currency = availableCurrencies[identifier.position]
         presenter.setCurrency(currency.code)
         presenter.setAmountPrefix(amountPrefix)
@@ -286,26 +286,17 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
     private fun getActiveSourceCurrencyPresenter(): CurrencyFragmentPresenter {
         val sourceCurrencyIndex = availableCurrencies.indexOf(selectedSourceCurrency)
         val sourcePresenterIdentifier = CurrencyFragmentIdentifier(CurrencyFragmentType.SOURCE, sourceCurrencyIndex)
-        return providePresenter(sourcePresenterIdentifier)
+        return childPresenterHolder.providePresenter(sourcePresenterIdentifier)
     }
 
     private fun getActiveDestinationCurreucyPresenter(): CurrencyFragmentPresenter {
         val sourceCurrencyIndex = availableCurrencies.indexOf(selectedDestinationCurrency)
         val sourcePresenterIdentifier = CurrencyFragmentIdentifier(CurrencyFragmentType.DESTINATION, sourceCurrencyIndex)
-        return providePresenter(sourcePresenterIdentifier)
+        return childPresenterHolder.providePresenter(sourcePresenterIdentifier)
     }
 
     fun onReloadClick() {
         viewState.setState(MainViewState.LOADING)
         currencyRates.reloadRatesNow()
-    }
-
-    //--------------
-    private val currencyPresenters = HashMap<CurrencyFragmentIdentifier, CurrencyFragmentPresenter>()
-    override fun providePresenter(identifier: CurrencyFragmentIdentifier): CurrencyFragmentPresenter {
-        return currencyPresenters[identifier]
-            ?: CurrencyFragmentPresenter(identifier, this).apply {
-                currencyPresenters[identifier] = this
-            }
     }
 }

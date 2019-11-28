@@ -36,12 +36,12 @@ open class DaggerModule(
             .connectTimeout(timeoutMs, TimeUnit.MILLISECONDS)
             .readTimeout(timeoutMs, TimeUnit.MILLISECONDS)
             .build()
-        return Retrofit.Builder()
+        val retrofit = Retrofit.Builder()
             .baseUrl(host)
             .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-            .create(ExchangeService::class.java)
+        return retrofit.create(ExchangeService::class.java)
     }
 
     @Provides

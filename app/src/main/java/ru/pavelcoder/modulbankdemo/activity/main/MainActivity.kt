@@ -98,7 +98,7 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
     }
 
     override fun providePresenter(identifier: CurrencyFragmentIdentifier): CurrencyFragmentPresenter {
-        return presenter.providePresenter(identifier)
+        return presenter.childPresenterHolder.providePresenter(identifier)
     }
 
     override fun setToolbarTitle(title: String) {
