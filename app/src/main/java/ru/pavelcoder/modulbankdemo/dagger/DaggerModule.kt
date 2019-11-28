@@ -3,6 +3,7 @@ package ru.pavelcoder.modulbankdemo.dagger
 import android.content.Context
 import dagger.Module
 import dagger.Provides
+import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.pavelcoder.modulbankdemo.BuildConfig
@@ -10,6 +11,7 @@ import ru.pavelcoder.modulbankdemo.logger.Logger
 import ru.pavelcoder.modulbankdemo.logger.LoggerImpl
 import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesFetcher
 import ru.pavelcoder.modulbankdemo.model.retrofit.ExchangeService
+import java.util.concurrent.TimeUnit
 import javax.inject.Named
 import javax.inject.Singleton
 
@@ -28,8 +30,15 @@ open class DaggerModule(
     @Provides
     @Singleton
     fun providesCurrencyRatesService(@Named(CURRENCY_RATES_HOST) host: String): ExchangeService {
+        val timeoutMs = 10_000L
+        val okHttpClient = OkHttpClient.Builder()
+            .callTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+            .connectTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+            .readTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+            .build()
         return Retrofit.Builder()
             .baseUrl(host)
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
             .create(ExchangeService::class.java)

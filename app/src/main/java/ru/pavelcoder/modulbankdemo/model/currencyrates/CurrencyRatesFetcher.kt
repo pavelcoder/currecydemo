@@ -1,7 +1,6 @@
 package ru.pavelcoder.modulbankdemo.model.currencyrates
 
 import kotlinx.coroutines.*
-import ru.pavelcoder.modulbankdemo.BuildConfig
 import ru.pavelcoder.modulbankdemo.logger.Logger
 import ru.pavelcoder.modulbankdemo.model.bank.Currency
 import ru.pavelcoder.modulbankdemo.model.bank.CurrencyRate
@@ -9,13 +8,9 @@ import ru.pavelcoder.modulbankdemo.model.bank.exception.RateNotFoundException
 import ru.pavelcoder.modulbankdemo.model.bank.exception.RatesNotReadyException
 import ru.pavelcoder.modulbankdemo.model.retrofit.CurrencyRatesResponse
 import ru.pavelcoder.modulbankdemo.model.retrofit.ExchangeService
-import java.lang.Exception
-import java.lang.RuntimeException
 
 /**
  * Update currency rates every REFRESH_RATE_MILLIS
- *
- * Don't update when no listeners.
  */
 class CurrencyRatesFetcher(
     private val exchangeService: ExchangeService,
@@ -28,12 +23,13 @@ class CurrencyRatesFetcher(
     private data class State(
         val updating: Boolean,
         val shouldUpdate: Boolean,
-        val updateAllowed: Boolean
+        val forceOffline: Boolean
     )
 
-    private var state = State(updating = false, shouldUpdate = false, updateAllowed = false)
+    private var state = State(updating = false, shouldUpdate = false, forceOffline = true)
     private val listeners = arrayListOf<CurrencyRatesListener>()
     private var currencyRates: List<CurrencyRate>? = null
+    private var timerJob: Job? = null
 
     override val coroutineContext = Dispatchers.Main
 
@@ -44,15 +40,11 @@ class CurrencyRatesFetcher(
     fun addListener(listener: CurrencyRatesListener) {
         if( listeners.contains(listener) ) throw RuntimeException("Listener already added")
         listeners.add(listener)
-        switchState(state.copy(updateAllowed = true))
     }
 
     fun removeListener(listener: CurrencyRatesListener) {
         if( ! listeners.remove(listener) ) {
             throw RuntimeException("Listener was not added")
-        }
-        if( listeners.isEmpty() ) {
-            switchState(state.copy(updateAllowed = false))
         }
     }
 
@@ -60,17 +52,27 @@ class CurrencyRatesFetcher(
         switchState(state.copy(shouldUpdate = true))
     }
 
+    fun setForceOffline(forceOffline: Boolean) {
+        switchState(state.copy(forceOffline = forceOffline))
+    }
+
     private fun switchState(newState: State) {
         if( newState == state ) return
         val oldState = state
         state = newState
-        if( state.updateAllowed && state.shouldUpdate && state.updating == false ) {
+        if( state.forceOffline == false && state.shouldUpdate && state.updating == false ) {
             state = state.copy(updating = true)
+            cancelTimer()
             updateCurrencyRates()
         }
 
-        if( oldState.updating == true && state.updating == false ) {
+        val justStopUpdating = oldState.updating == true && state.updating == false
+        if( justStopUpdating ) {
             setupTimerForNextUpdate()
+        }
+
+        if( oldState.forceOffline == true && state.forceOffline == false ) {
+            cancelTimer()
         }
     }
 
@@ -101,10 +103,16 @@ class CurrencyRatesFetcher(
     }
 
     private fun setupTimerForNextUpdate() {
-        launch {
+        cancelTimer()
+        timerJob = launch {
             delay(REFRESH_RATE_MILLIS)
             switchState(state.copy(shouldUpdate = true))
         }
+    }
+
+    private fun cancelTimer() {
+        timerJob?.cancel()
+        timerJob = null
     }
 
     /**

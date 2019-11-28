@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
+import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.viewpager.widget.ViewPager
 import kotlinx.android.synthetic.main.activity_main.*
@@ -46,7 +47,16 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
         amReload.setOnClickListener {
             presenter.onReloadClick()
         }
+    }
 
+    override fun onResume() {
+        super.onResume()
+        presenter.onActivityResume()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        presenter.onActivityPause()
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
@@ -113,5 +123,9 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
     override fun setExchangeButtonVisible(visible: Boolean) {
         hasMenu = visible
         invalidateOptionsMenu()
+    }
+
+    override fun showToast(string: String) {
+        Toast.makeText(this, string, Toast.LENGTH_SHORT).show()
     }
 }

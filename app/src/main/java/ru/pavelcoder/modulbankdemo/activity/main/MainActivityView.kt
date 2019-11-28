@@ -17,4 +17,6 @@ interface MainActivityView : MvpView {
     fun setExchangeButtonVisible(visible: Boolean)
     @StateStrategyType(OneExecutionStateStrategy::class)
     fun showAlert(text: String)
+    @StateStrategyType(OneExecutionStateStrategy::class)
+    fun showToast(string: String)
 }

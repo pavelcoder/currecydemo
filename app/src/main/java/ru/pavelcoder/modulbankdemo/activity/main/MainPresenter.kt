@@ -51,8 +51,31 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         currencyRates.addListener(this)
     }
 
+    fun onActivityResume() {
+        currencyRates.setForceOffline(false)
+        currencyRates.reloadRatesNow()
+    }
+
+    fun onActivityPause() {
+        currencyRates.setForceOffline(true)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        currencyRates.removeListener(this)
+    }
+
     override fun onCurrencyRatesUpdateFinished(success: Boolean) {
-        if( bank != null ) return
+        val firstTime = bank == null
+        if( ! firstTime ) {
+            if( success ) {
+                viewState.showToast(applicationContext.getString(R.string.rates_updated))
+                updateDestinationAmount()
+                updateSourceRates()
+                updateDestinationRates()
+            }
+            return
+        }
         if (success) {
             bank = LocalBankFactory.createBank(currencyRates)
             availableCurrencies = bank!!.getAvailableCurrencies().sortedBy { it.code }
@@ -65,11 +88,6 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         }
     }
 
-    override fun onDestroy() {
-        super.onDestroy()
-        currencyRates.removeListener(this)
-    }
-
     private fun showExchangeView() {
         viewState.setState(MainViewState.CURRENCY_EXCHANGE)
         showSourceCurrencies()
@@ -78,6 +96,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         updateSourceRates()
         updateSourceAmountLeft()
         updateDestinationAmount()
+        updateDestinationRates()
         updateDestinationAmountLeft()
         viewState.setExchangeButtonVisible(true)
     }
