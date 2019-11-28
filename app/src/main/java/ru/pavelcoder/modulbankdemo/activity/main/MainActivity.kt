@@ -58,11 +58,18 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        return if( item.itemId == R.id.exchange ) {
-            presenter.onExchangeClick()
-            true
-        } else {
-            super.onOptionsItemSelected(item)
+        return when (item.itemId) {
+            R.id.exchange -> {
+                presenter.onExchangeClick()
+                true
+            }
+            R.id.clear -> {
+                presenter.onClearClick()
+                true
+            }
+            else -> {
+                super.onOptionsItemSelected(item)
+            }
         }
     }
 
@@ -96,7 +103,7 @@ class MainActivity : MvpAppCompatActivity(), MainActivityView, CurrencyFragmentP
         amDestinationPager.setCurrentItem(position, false)
     }
 
-    override fun showErrorAlert(text: String) {
+    override fun showAlert(text: String) {
         AlertDialog.Builder(this)
             .setMessage(text)
             .setPositiveButton(R.string.Close) { _, _ ->}

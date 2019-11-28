@@ -118,7 +118,7 @@ class CurrencyRatesFetcher(
                 ?: throw RatesResponseNotConsistentException("Can't find currency rate for ${currency.code}")
             CurrencyRate(baseCurrency, currency, rate)
         }.toMutableList()
-        currencies.add(0, CurrencyRate(baseCurrency, baseCurrency, 1f))
+        currencies.add(0, CurrencyRate(baseCurrency, baseCurrency, 1.0))
         return currencies
     }
 

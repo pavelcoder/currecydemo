@@ -1,7 +1,6 @@
 package ru.pavelcoder.modulbankdemo.ui.view
 
 import android.content.Context
-import android.os.Parcelable
 import android.text.Editable
 import android.text.Selection
 import android.text.TextWatcher
@@ -10,7 +9,6 @@ import androidx.appcompat.widget.AppCompatEditText
 
 /**
  * Cursor not positioning at right corner, when hint is specified.
- * Class implements own hint.
  */
 class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditText (context, attrs) {
     var prefix: String = ""
@@ -20,6 +18,7 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditT
         }
 
     var onTextChanged: ((String) -> Unit)? = null
+    private var textChangedCallbackAllowed = true
 
     init {
         //prevent from restore state and call text changed listener
@@ -31,8 +30,10 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditT
         override fun beforeTextChanged(s: CharSequence, start: Int, count: Int,after: Int) {}
 
         override fun afterTextChanged(editable: Editable) {
-            updatePrefixForText()
-            onTextChanged?.invoke( textWithoutPrefix() )
+            if( textChangedCallbackAllowed ) {
+                updatePrefixForText()
+                onTextChanged?.invoke(textWithoutPrefix())
+            }
         }
     }
 
@@ -41,10 +42,11 @@ class PrefixedEditText(context: Context?, attrs: AttributeSet?) : AppCompatEditT
     }
 
     fun setTextWithoutCallbacks(text: String) {
-        if( this.text.toString() == text ) return
-        removeTextChangedListener(textWatcher)
+        if( textWithoutPrefix() == text ) return
+        textChangedCallbackAllowed = false
         setText(text)
-        addTextChangedListener(textWatcher)
+        updatePrefixForText()
+        textChangedCallbackAllowed = true
     }
 
     private fun updatePrefixForText() {

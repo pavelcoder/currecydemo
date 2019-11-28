@@ -7,9 +7,9 @@ import kotlin.math.round
 class LocalBank (
     private val ratesSource: CurrencyRatesSource
 ) : Bank {
-    private val funds = HashMap<Currency, Long>()
+    private val funds = HashMap<Currency, Double>()
 
-    fun setAmount(currencies: Map<Currency, Long>) {
+    fun setAmount(currencies: Map<Currency, Double>) {
         currencies.forEach { currency ->
             if( currency.value < 0 ) throw AmountNotPositiveException("Currency amount must be >= 0")
         }
@@ -22,12 +22,12 @@ class LocalBank (
         return when( request.calcFrom ) {
             TransactionRequest.TransactionCalcFrom.Source -> {
                 val sourceAmount = request.amount
-                val targetAmount = round(sourceAmount * conversionRate).toLong()
+                val targetAmount = sourceAmount * conversionRate
                 Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount)
             }
             TransactionRequest.TransactionCalcFrom.Destination -> {
                 val targetAmount = request.amount
-                val sourceAmount = round(targetAmount / conversionRate).toLong()
+                val sourceAmount = targetAmount / conversionRate
                 Transaction(request.sourceCurrency, request.destinationCurrency, sourceAmount, targetAmount)
             }
         }
@@ -41,19 +41,19 @@ class LocalBank (
             throw NotEnoughFundsException("Available $sourceAmount ${transaction.sourceCurrency},"
                     + " required ${transaction.sourceAmount} ${transaction.sourceCurrency}")
         }
-        funds[transaction.sourceCurrency] = sourceAmount - transaction.sourceAmount
-        funds[transaction.destinationCurrency] = targetAmount + transaction.destinationAmount
+        funds[transaction.sourceCurrency] = (sourceAmount - transaction.sourceAmount).roundToCents()
+        funds[transaction.destinationCurrency] = (targetAmount + transaction.destinationAmount).roundToCents()
     }
 
-    override fun getAvailableFunds(currency: Currency): Long {
-        return funds[currency] ?: throw NoSuchCurrencyException(currency.toString())
+    override fun getAvailableFunds(currency: Currency): Double {
+        return funds[currency]?.toDouble() ?: throw NoSuchCurrencyException(currency.toString())
     }
 
     override fun getAvailableCurrencies(): List<Currency> {
         return funds.keys.toList()
     }
 
-    override fun getConversionRate(from: Currency, to: Currency): Float {
+    override fun getConversionRate(from: Currency, to: Currency): Double {
         val sourceRate = ratesSource.rateForCurrency(from)
         val targetRate = ratesSource.rateForCurrency(to)
         return targetRate.rate / sourceRate.rate
@@ -64,11 +64,11 @@ class LocalBank (
             throw SameCurrencyTransactionException(transaction.sourceCurrency)
         }
 
-        if( transaction.sourceAmount == 0L ) {
+        if( transaction.sourceAmount.roundToCents() == 0.0 ) {
             throw ZeroAmountTransactionException("Source amount is 0")
         }
 
-        if( transaction.destinationAmount == 0L ) {
+        if( transaction.destinationAmount.roundToCents() == 0.0 ) {
             throw ZeroAmountTransactionException("Destination amount is 0")
         }
 
@@ -84,4 +84,6 @@ class LocalBank (
             throw RatesWrongException("Wrong transaction $transaction, actual: $actualTransaction")
         }
     }
+
+    private fun Double.roundToCents() = round(this * 100) / 100.0
 }

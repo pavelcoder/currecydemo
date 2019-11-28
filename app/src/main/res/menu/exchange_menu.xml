@@ -3,10 +3,15 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
+        android:id="@+id/clear"
+        android:title="@string/clear"
+        app:showAsAction="always"
+        android:icon="@drawable/ic_clear_black_24dp">
+    </item>
+    <item
         android:id="@+id/exchange"
         android:title="@string/exchange"
         app:showAsAction="always"
-        android:icon="@drawable/ic_compare_arrows_black_24dp"
-        android:iconTint="#fff">
+        android:icon="@drawable/ic_compare_arrows_black_24dp">
     </item>
 </menu>

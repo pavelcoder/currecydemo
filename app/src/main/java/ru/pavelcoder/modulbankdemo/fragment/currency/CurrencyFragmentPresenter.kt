@@ -25,8 +25,8 @@ class CurrencyFragmentPresenter(
         viewState.setCurrency(currency)
     }
 
-    fun setAmount(amount: Float) {
-        val formatted = if( amount == 0f ) {
+    fun setAmount(amount: Double) {
+        val formatted = if( amount == 0.0 ) {
             ""
         } else {
             String.format(applicationContext.getString(R.string.currency_amount_format), amount)
@@ -34,7 +34,7 @@ class CurrencyFragmentPresenter(
         viewState.setAmount(formatted)
     }
 
-    fun setRate(leftAmount: Float, leftSymbol: String, rightAmount: Float, rightSymbol: String) {
+    fun setRate(leftAmount: Double, leftSymbol: String, rightAmount: Double, rightSymbol: String) {
         val formatted = String.format(
             applicationContext.getString(R.string.rate_format),
             leftAmount,
@@ -49,13 +49,13 @@ class CurrencyFragmentPresenter(
         viewState.setAmountPrefix(prefix)
     }
 
-    fun setAvailableAmount(available: Float, symbol: String) {
+    fun setAvailableAmount(available: Double, symbol: String) {
         val text = applicationContext.getString(R.string.currency_you_have, available, symbol)
         viewState.setAvailableAmount(text)
     }
 
     fun onAmountChanged(newAmount: String) {
-        val amount = newAmount.replace(',', '.').toFloatOrNull() ?: 0f
+        val amount = newAmount.replace(',', '.').toDoubleOrNull() ?: 0.0
         parent.onAmountChanged(identifier, amount)
     }
 }

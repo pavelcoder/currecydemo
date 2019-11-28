@@ -16,5 +16,5 @@ interface MainActivityView : MvpView {
     fun setSelectedDestinationCurrency(position: Int)
     fun setExchangeButtonVisible(visible: Boolean)
     @StateStrategyType(OneExecutionStateStrategy::class)
-    fun showErrorAlert(text: String)
+    fun showAlert(text: String)
 }

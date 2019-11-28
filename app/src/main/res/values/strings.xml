@@ -13,4 +13,6 @@
     <string name="currency_rates_wrong">Currency rates is not correct</string>
     <string name="zero_transaction_error">Can not execute transaction with zero source or destination</string>
     <string name="same_currency_transaction_error">Can not execute transaction between same currency</string>
+    <string name="clear">Clear</string>
+    <string name="exchange_success">Exchanged %.2f %s -> %.2f %s</string>
 </resources>

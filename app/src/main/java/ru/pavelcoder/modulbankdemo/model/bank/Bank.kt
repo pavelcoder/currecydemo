@@ -9,7 +9,7 @@ interface Bank {
      * Execute transaction of throw exception
      */
     fun executeTransaction(transaction: Transaction)
-    fun getAvailableFunds(currency: Currency): Long
+    fun getAvailableFunds(currency: Currency): Double
     fun getAvailableCurrencies(): List<Currency>
-    fun getConversionRate(from: Currency, to: Currency): Float
+    fun getConversionRate(from: Currency, to: Currency): Double
 }

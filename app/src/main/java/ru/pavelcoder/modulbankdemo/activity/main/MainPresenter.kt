@@ -41,8 +41,8 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
 
     private lateinit var selectedSourceCurrency: Currency
     private lateinit var selectedDestinationCurrency: Currency
-    private var sourceAmount = 0L
-    private var destinationAmount = 0L
+    private var sourceAmount = 0.0
+    private var destinationAmount = 0.0
 
     init {
         DaggerHolder.getDagger().inject(this)
@@ -74,7 +74,11 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         viewState.setState(MainViewState.CURRENCY_EXCHANGE)
         showSourceCurrencies()
         showDestinationCurrencies()
-        showZeroTransaction()
+        updateSourceAmount()
+        updateSourceRates()
+        updateSourceAmountLeft()
+        updateDestinationAmount()
+        updateDestinationAmountLeft()
         viewState.setExchangeButtonVisible(true)
     }
 
@@ -98,23 +102,13 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         destinationIdentifiers.forEach { identifier -> firstSetupCurrencyPresenter(identifier, DESTINATION_PREFIX) }
     }
 
-    private fun showZeroTransaction() {
-        sourceAmount = 0
-        destinationAmount = 0
-        updateSourceAmount()
-        updateSourceRates()
-        updateSourceAmountLeft()
-        updateDestinationAmount()
-        updateDestinationAmountLeft()
-    }
-
     private fun firstSetupCurrencyPresenter(identifier: CurrencyFragmentIdentifier, amountPrefix: String) {
         val presenter = providePresenter(identifier)
         val currency = availableCurrencies[identifier.position]
         presenter.setCurrency(currency.code)
         presenter.setAmountPrefix(amountPrefix)
         val available = bank!!.getAvailableFunds(currency)
-        presenter.setAvailableAmount(available / 100f, currency.symbol)
+        presenter.setAvailableAmount(available, currency.symbol)
     }
 
     fun onSourceSelectionChanged(position: Int) {
@@ -135,27 +129,42 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         updateDestinationRates()
     }
 
+    fun onClearClick() {
+        sourceAmount = 0.0
+        destinationAmount = 0.0
+        updateSourceAmount()
+        updateDestinationAmount()
+    }
+
     fun onExchangeClick() {
         try {
             val transaction = Transaction(selectedSourceCurrency, selectedDestinationCurrency, sourceAmount, destinationAmount)
             bank!!.executeTransaction(transaction)
-            sourceAmount = 0
-            destinationAmount = 0
+            val successMessage = applicationContext.getString(
+                R.string.exchange_success,
+                sourceAmount,
+                selectedSourceCurrency.code,
+                destinationAmount,
+                selectedDestinationCurrency.code
+            )
+            viewState.showAlert(successMessage)
+            sourceAmount = 0.0
+            destinationAmount = 0.0
             updateSourceAmount()
             updateSourceAmountLeft()
             updateDestinationAmount()
             updateDestinationAmountLeft()
         } catch (e: ZeroAmountTransactionException) {
-            viewState.showErrorAlert(applicationContext.getString(R.string.zero_transaction_error))
+            viewState.showAlert(applicationContext.getString(R.string.zero_transaction_error))
             logger.log(e)
         } catch (e: SameCurrencyTransactionException) {
-            viewState.showErrorAlert(applicationContext.getString(R.string.same_currency_transaction_error))
+            viewState.showAlert(applicationContext.getString(R.string.same_currency_transaction_error))
             logger.log(e)
         } catch (e: NotEnoughFundsException) {
             showNotEnoughFundsError()
             logger.log(e)
         } catch (e: RatesWrongException) {
-            viewState.showErrorAlert(applicationContext.getString(R.string.currency_rates_wrong))
+            viewState.showAlert(applicationContext.getString(R.string.currency_rates_wrong))
             logger.log(e)
         }
     }
@@ -164,23 +173,22 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         val available = bank!!.getAvailableFunds(selectedSourceCurrency)
         val message = applicationContext.getString(
             R.string.not_enough_money,
-            sourceAmount / 100f,
+            sourceAmount,
             selectedSourceCurrency.code,
-            available / 100f,
+            available,
             selectedSourceCurrency.code
         )
-        viewState.showErrorAlert(message)
+        viewState.showAlert(message)
     }
 
-    fun onAmountChanged(fragmentIdentifier: CurrencyFragmentIdentifier, amount: Float) {
-        val amountInCents = (amount * 100).toLong()
+    fun onAmountChanged(fragmentIdentifier: CurrencyFragmentIdentifier, amount: Double) {
         when (fragmentIdentifier.type) {
             CurrencyFragmentType.SOURCE -> {
-                sourceAmount = amountInCents
+                sourceAmount = amount
                 updateDestinationAmount()
             }
             CurrencyFragmentType.DESTINATION -> {
-                destinationAmount = amountInCents
+                destinationAmount = amount
                 updateSourceAmount()
             }
         }
@@ -197,10 +205,10 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         try {
             val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
             sourceAmount = transaction.sourceAmount
-            srcPresenter.setAmount(transaction.sourceAmount / 100f)
+            srcPresenter.setAmount(transaction.sourceAmount)
         } catch (e: Exception) {
             logger.log(e)
-            srcPresenter.setAmount(0f)
+            srcPresenter.setAmount(0.0)
         }
     }
 
@@ -215,10 +223,10 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         try {
             val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
             destinationAmount = transaction.destinationAmount
-            dstPresenter.setAmount(transaction.destinationAmount / 100f)
+            dstPresenter.setAmount(transaction.destinationAmount)
         } catch (e: Exception) {
             logger.log(e)
-            dstPresenter.setAmount(0f)
+            dstPresenter.setAmount(0.0)
         }
     }
 
@@ -226,7 +234,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         val srcPresenter = getActiveSourceCurrencyPresenter()
         val rate = bank!!.getConversionRate(selectedSourceCurrency, selectedDestinationCurrency)
         srcPresenter.setRate(
-            1f,
+            1.0,
             selectedSourceCurrency.symbol,
             rate,
             selectedDestinationCurrency.symbol
@@ -237,24 +245,23 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener,
         val dstPresenter = getActiveDestinationCurreucyPresenter()
         val rate = bank!!.getConversionRate(selectedDestinationCurrency, selectedSourceCurrency)
         dstPresenter.setRate(
-            1f,
+            1.0,
             selectedDestinationCurrency.symbol,
             rate,
             selectedSourceCurrency.symbol
         )
     }
 
-
     private fun updateSourceAmountLeft() {
         val amount = bank!!.getAvailableFunds(selectedSourceCurrency)
         val srcPresenter = getActiveSourceCurrencyPresenter()
-        srcPresenter.setAvailableAmount(amount / 100f, selectedSourceCurrency.symbol)
+        srcPresenter.setAvailableAmount(amount, selectedSourceCurrency.symbol)
     }
 
     private fun updateDestinationAmountLeft() {
         val amount = bank!!.getAvailableFunds(selectedDestinationCurrency)
         val dstPresenter = getActiveDestinationCurreucyPresenter()
-        dstPresenter.setAvailableAmount(amount / 100f, selectedDestinationCurrency.symbol)
+        dstPresenter.setAvailableAmount(amount, selectedDestinationCurrency.symbol)
     }
 
     private fun getActiveSourceCurrencyPresenter(): CurrencyFragmentPresenter {
