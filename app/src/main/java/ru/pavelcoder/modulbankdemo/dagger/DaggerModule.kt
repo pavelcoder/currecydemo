@@ -3,13 +3,20 @@ package ru.pavelcoder.modulbankdemo.dagger
 import android.content.Context
 import dagger.Module
 import dagger.Provides
+import io.realm.Realm
+import io.realm.RealmConfiguration
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import ru.pavelcoder.modulbankdemo.BuildConfig
 import ru.pavelcoder.modulbankdemo.logger.Logger
 import ru.pavelcoder.modulbankdemo.logger.LoggerImpl
+import ru.pavelcoder.modulbankdemo.model.bank.Bank
+import ru.pavelcoder.modulbankdemo.model.bank.LocalBankFactory
 import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesFetcher
+import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesSource
+import ru.pavelcoder.modulbankdemo.model.db.MoneyRealmRepository
+import ru.pavelcoder.modulbankdemo.model.db.MoneyRepository
 import ru.pavelcoder.modulbankdemo.model.retrofit.ExchangeService
 import java.util.concurrent.TimeUnit
 import javax.inject.Named
@@ -21,6 +28,7 @@ open class DaggerModule(
 ) {
     companion object {
         const val CURRENCY_RATES_HOST = "CURRENCY_RATES_HOST"
+        private const val REALM_DB_NAME = "realm.currencies.db"
     }
 
     @Provides
@@ -54,5 +62,22 @@ open class DaggerModule(
     @Provides
     fun providesLogger(): Logger {
         return LoggerImpl( ! BuildConfig.DEBUG )
+    }
+
+    @Singleton
+    @Provides
+    fun providesCurrencyRepository(context: Context): MoneyRepository {
+        Realm.init(context)
+        val realmConfig = RealmConfiguration.Builder()
+            .name(REALM_DB_NAME)
+            .build()
+        val realm = Realm.getInstance(realmConfig)
+        return MoneyRealmRepository(realm)
+    }
+
+    @Singleton
+    @Provides
+    fun providesBank(ratesFetcher: CurrencyRatesFetcher, moneyRepository: MoneyRepository): Bank {
+        return LocalBankFactory.createBank(ratesFetcher, moneyRepository)
     }
 }

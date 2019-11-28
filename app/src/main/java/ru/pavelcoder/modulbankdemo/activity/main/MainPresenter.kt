@@ -33,14 +33,16 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
     internal lateinit var currencyRates: CurrencyRatesFetcher
     @Inject
     internal lateinit var logger: Logger
+    @Inject
+    internal lateinit var bank: Bank
 
-    private var bank: Bank? = null
     private lateinit var availableCurrencies: List<Currency>
 
     private lateinit var selectedSourceCurrency: Currency
     private lateinit var selectedDestinationCurrency: Currency
     private var sourceAmount = 0.0
     private var destinationAmount = 0.0
+    private var bankReady = false
 
     val childPresenterHolder = CurrencyFragmentPresentersHolder(this)
 
@@ -66,19 +68,14 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
     }
 
     override fun onCurrencyRatesUpdateFinished(success: Boolean) {
-        val firstTime = bank == null
-        if( ! firstTime ) {
-            if( success ) {
-                viewState.showToast(applicationContext.getString(R.string.rates_updated))
-                updateDestinationAmount()
-                updateSourceRates()
-                updateDestinationRates()
-            }
-            return
-        }
-        if (success) {
-            bank = LocalBankFactory.createBank(currencyRates)
-            availableCurrencies = bank!!.getAvailableCurrencies().sortedBy { it.code }
+        if( bankReady && success ) {
+            viewState.showToast(applicationContext.getString(R.string.rates_updated))
+            updateDestinationAmount()
+            updateSourceRates()
+            updateDestinationRates()
+        } else if (success) {
+            bankReady = true
+            availableCurrencies = bank.getAvailableCurrencies().sortedBy { it.code }
             selectedDestinationCurrency = availableCurrencies[DEFAULT_SELECTED_CURRENCY_INDEX]
             selectedSourceCurrency = availableCurrencies[DEFAULT_SELECTED_CURRENCY_INDEX]
             showExchangeView()
@@ -126,7 +123,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
         val currency = availableCurrencies[identifier.position]
         presenter.setCurrency(currency.code)
         presenter.setAmountPrefix(amountPrefix)
-        val available = bank!!.getAvailableFunds(currency)
+        val available = bank.getAvailableFunds(currency)
         presenter.setAvailableAmount(available, currency.symbol)
     }
 
@@ -158,7 +155,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
     fun onExchangeClick() {
         try {
             val transaction = Transaction(selectedSourceCurrency, selectedDestinationCurrency, sourceAmount, destinationAmount)
-            bank!!.executeTransaction(transaction)
+            bank.executeTransaction(transaction)
             val successMessage = applicationContext.getString(
                 R.string.exchange_success,
                 sourceAmount,
@@ -189,7 +186,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
     }
 
     private fun showNotEnoughFundsError() {
-        val available = bank!!.getAvailableFunds(selectedSourceCurrency)
+        val available = bank.getAvailableFunds(selectedSourceCurrency)
         val message = applicationContext.getString(
             R.string.not_enough_money,
             sourceAmount,
@@ -222,7 +219,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
         )
         val srcPresenter = getActiveSourceCurrencyPresenter()
         try {
-            val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
+            val transaction = bank.prepareTransactionWithActualRates(transactionRequest)
             sourceAmount = transaction.sourceAmount
             srcPresenter.setAmount(transaction.sourceAmount)
         } catch (e: Exception) {
@@ -240,7 +237,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
         )
         val dstPresenter = getActiveDestinationCurreucyPresenter()
         try {
-            val transaction = bank!!.prepareTransactionWithActualRates(transactionRequest)
+            val transaction = bank.prepareTransactionWithActualRates(transactionRequest)
             destinationAmount = transaction.destinationAmount
             dstPresenter.setAmount(transaction.destinationAmount)
         } catch (e: Exception) {
@@ -251,7 +248,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
 
     private fun updateSourceRates() {
         val srcPresenter = getActiveSourceCurrencyPresenter()
-        val rate = bank!!.getConversionRate(selectedSourceCurrency, selectedDestinationCurrency)
+        val rate = bank.getConversionRate(selectedSourceCurrency, selectedDestinationCurrency)
         srcPresenter.setRate(
             1.0,
             selectedSourceCurrency.symbol,
@@ -262,7 +259,7 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
 
     private fun updateDestinationRates() {
         val dstPresenter = getActiveDestinationCurreucyPresenter()
-        val rate = bank!!.getConversionRate(selectedDestinationCurrency, selectedSourceCurrency)
+        val rate = bank.getConversionRate(selectedDestinationCurrency, selectedSourceCurrency)
         dstPresenter.setRate(
             1.0,
             selectedDestinationCurrency.symbol,
@@ -272,13 +269,13 @@ class MainPresenter : MvpPresenter<MainActivityView>(), CurrencyRatesListener {
     }
 
     private fun updateSourceAmountLeft() {
-        val amount = bank!!.getAvailableFunds(selectedSourceCurrency)
+        val amount = bank.getAvailableFunds(selectedSourceCurrency)
         val srcPresenter = getActiveSourceCurrencyPresenter()
         srcPresenter.setAvailableAmount(amount, selectedSourceCurrency.symbol)
     }
 
     private fun updateDestinationAmountLeft() {
-        val amount = bank!!.getAvailableFunds(selectedDestinationCurrency)
+        val amount = bank.getAvailableFunds(selectedDestinationCurrency)
         val dstPresenter = getActiveDestinationCurreucyPresenter()
         dstPresenter.setAvailableAmount(amount, selectedDestinationCurrency.symbol)
     }

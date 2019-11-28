@@ -2,12 +2,21 @@ package ru.pavelcoder.modulbankdemo.model.bank
 
 import ru.pavelcoder.modulbankdemo.model.bank.exception.*
 import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesSource
+import ru.pavelcoder.modulbankdemo.model.db.MoneyRepository
+import java.lang.Exception
 import kotlin.math.round
 
 class LocalBank (
-    private val ratesSource: CurrencyRatesSource
+    private val ratesSource: CurrencyRatesSource,
+    private val moneyRepository: MoneyRepository,
+    currencies: List<Currency>,
+    defaultValues: Map<Currency, Double>
 ) : Bank {
     private val funds = HashMap<Currency, Double>()
+
+    init {
+        loadFundsFromRepositoryOrDefaults(currencies, defaultValues)
+    }
 
     fun setAmount(currencies: Map<Currency, Double>) {
         currencies.forEach { currency ->
@@ -15,6 +24,7 @@ class LocalBank (
         }
         this.funds.clear()
         currencies.toMap(this.funds)
+        saveFundsToRepository()
     }
 
     override fun prepareTransactionWithActualRates(request: TransactionRequest): Transaction {
@@ -43,6 +53,7 @@ class LocalBank (
         }
         funds[transaction.sourceCurrency] = (sourceAmount - transaction.sourceAmount).roundToCents()
         funds[transaction.destinationCurrency] = (targetAmount + transaction.destinationAmount).roundToCents()
+        saveFundsToRepository()
     }
 
     override fun getAvailableFunds(currency: Currency): Double {
@@ -86,4 +97,22 @@ class LocalBank (
     }
 
     private fun Double.roundToCents() = round(this * 100) / 100.0
+
+    private fun saveFundsToRepository() {
+        funds.forEach {
+            moneyRepository.saveAmount(it.key, it.value)
+        }
+    }
+
+    private fun loadFundsFromRepositoryOrDefaults(currencies: List<Currency>, defaultValues: Map<Currency, Double>) {
+        try {
+            currencies.forEach {currency ->
+                val amount = moneyRepository.getAmount(currency)
+                funds[currency] = amount
+            }
+        } catch (e: Exception) {
+            funds.clear()
+            defaultValues.toMap(funds)
+        }
+    }
 }

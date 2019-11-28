@@ -8,11 +8,10 @@ import ru.pavelcoder.modulbankdemo.model.bank.LocalBank
 import ru.pavelcoder.modulbankdemo.model.bank.Transaction
 import ru.pavelcoder.modulbankdemo.model.bank.exception.RatesWrongException
 import ru.pavelcoder.modulbankdemo.model.currencyrates.CurrencyRatesSource
+import ru.pavelcoder.modulbankdemo.model.db.MoneyRepository
 
 /**
- * Example local unit test, which will execute on the development machine (host).
- *
- * See [testing documentation](http://d.android.com/tools/testing).
+ * Two sample tests
  */
 class ExampleUnitTest {
     companion object {
@@ -30,14 +29,22 @@ class ExampleUnitTest {
         return currencyRatesSource
     }
 
+    private fun createEmptyRepository(): MoneyRepository {
+        val moneyRepository = mock(MoneyRepository::class.java)
+        Currency.values().forEach { currency ->
+            doThrow(RuntimeException()).`when`(moneyRepository).getAmount(currency)
+        }
+        return moneyRepository
+    }
+
     @Test
     fun sampleBankTransactionChangeAmountCorrectTest() {
-        val bank = LocalBank(createRatesSource())
         val initialRubs = 100.0
-        bank.setAmount(hashMapOf(
+        val default = hashMapOf(
             Currency.EUR to 100.0,
             Currency.RUB to initialRubs
-        ))
+        )
+        val bank = LocalBank(createRatesSource(), createEmptyRepository(), default.keys.toList(), default)
         val eurToTransfer = 5.0
         bank.executeTransaction(Transaction(
             Currency.EUR,
@@ -51,11 +58,12 @@ class ExampleUnitTest {
 
     @Test(expected = RatesWrongException::class)
     fun sampleBankTransactionExceptionTest() {
-        val bank = LocalBank(createRatesSource())
-        bank.setAmount(hashMapOf(
+        val initialRubs = 100.0
+        val default = hashMapOf(
             Currency.EUR to 100.0,
-            Currency.RUB to 100.0
-        ))
+            Currency.RUB to initialRubs
+        )
+        val bank = LocalBank(createRatesSource(), createEmptyRepository(), default.keys.toList(), default)
         val eurToTransfer = 5.0
         val wrongRubsAmount = 1.0
         bank.executeTransaction(Transaction(
